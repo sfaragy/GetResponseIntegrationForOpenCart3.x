@@ -1,0 +1,368 @@
+{{ header }}
+{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+        <button type="submit" form="form-module" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+        <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a></div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+      <div class="gr-info"></div>
+   {% if error_warning and error_warning is not empty %}
+    <div class="alert alert-danger" role="alert">{{ error_warning }}</div>
+    {% endif %}
+
+   {% if save_success and save_success is not empty %}
+    <div class="alert alert-success" role="alert">{{ save_success }}</div>
+    {% endif %}
+
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form"
+              class="form-horizontal">
+          <input type="hidden" value="1" name="getresponse_status">
+          <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="{% if active_tab == 'home' %} active {% endif %}"><a href="#settings" aria-controls="home" role="tab" data-toggle="tab">{{ apikey_title }}</a></li>
+            {% if getresponse_apikey is not empty %}
+            <li role="presentation" class="{% if active_tab == 'export' %}active{% endif %}"><a href="#export" aria-controls="export" role="tab" data-toggle="tab">{{ export_title }}</a></li>
+            <li role="presentation" class="{% if active_tab == 'registration' %} active {% endif %}"><a href="#registration" aria-controls="registration" role="tab" data-toggle="tab">{{ register_title }}</a></li>
+            <li role="presentation" class="{% if active_tab == 'webform' %} active{% endif %}"><a href="#webform" aria-controls="webform" role="tab" data-toggle="tab">{{ webform_title }}</a></li>
+            {% endif %}
+          </ul>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane {% if active_tab == 'home' %}active{% endif %}" id="settings">
+                <div>
+                    {% if getresponse_accounts.name %}
+                        {{ getresponse_accounts.name }}, {{ getresponse_accounts.email}} <br>
+                        {{ getresponse_accounts.street }}, {{ getresponse_accounts.zipCode }} {{ getresponse_accounts.city }} <br>
+                        {{ getresponse_accounts.state }}, {{ getresponse_accounts.countryCode }}<br>
+                   {% else %}
+                        <p> {{ apikey_info }}</p>                 
+                    {% endif %}
+                </div>
+              <div class="form-group required">
+                <label for="getresponse-apikey"
+                       class="col-sm-2 control-label">{{ entry_apikey }}</label>
+                <div class="col-sm-10">
+
+                  <div class="form-inline">
+                    <input id="getresponse-apikey" class="form-control" type="text" name="getresponse_apikey"
+                         value="{{ getresponse_apikey }}" size="50" {% if getresponse_apikey is empty %} {% else %} readonly {% endif %} />
+                      {% if getresponse_apikey is empty %}
+                          <button class="btn btn-primary" type="submit" id="button_connect">{{ button_connect }}</button>
+                      {% else %}
+                          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#getresponseModal">
+                              {{ button_disconnect }}
+                          </button>
+                      {% endif %}
+                      <input type="hidden" value="0" name="getresponse_disconnect" id="getresponse_disconnect">
+                  </div>
+                  <span id="gr-apikey-help" class="help-block">{{ entry_apikey_hint }}</span>
+                </div>
+              </div>
+            </div>
+            {% if getresponse_apikey is not empty %}
+            <div role="tabpanel" class="tab-pane {% if active_tab == 'export' %} active {% enfif %}" id="export">
+                <div class="form-group">
+                <label for="getresponse-campaign"
+                       class="col-sm-2 control-label">{{ label_campaign }}</label>
+                <div class="col-sm-4">
+                  <select id="getresponse-campaign" class="form-control" name="getresponse_campaign">
+                    {% for campaign in campaigns %}
+                    <option value="{{ campaign.campaignId }}" {% if getresponse_campaign  and getresponse_campaign == campaign.campaignId %} selected{% endif %}>{{ campaign.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <span id="config-campaign-help" class="help-block">{{ entry_campaign_hint }}</span>
+                </div>
+              </div>
+                <div class="form-group sequence-ex-day-label" style="border-top:none">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10 checkbox">
+                        <label>
+                            <input type="checkbox"
+                                   value="1"{% if getresponse_ex.sequence_active and getresponse_ex.sequence_active == 1 %} checked{% endif %}
+                                   name="getresponse_ex[sequence_active]" id="getresponse_ex_sequence_active">
+                        </label> {{ label_auto_queue }}
+                    </div>
+                </div>
+                <div class="form-group sequence-ex-day-label" style="border-top:none">
+                    <label for="getresponse-ex-day"
+                           class="col-sm-2 control-label">{{ label_day_of_cycle }}</label>
+                    <div class="col-sm-4">
+                        <select name="getresponse_ex[day]" id="getresponse-ex-day" class="form-control"></select>
+                        <span class="help-block">{{ entry_campaign_description }}</span>
+                    </div>
+                </div>
+              <div class="col-sm-offset-2 col-sm-3">
+                <a id="gr-export" class="button btn btn-primary">{{ button_export }}</a>
+              </div>
+              <div class="form-group" id="edit-export-hint">
+                <div class="col-sm-10">
+                  <a class="gr-hint" href="#">{{ label_export_info }}</a>
+                  <div id="gr-hint-ex" style="display: none;">
+                    {{ export_info }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div role="tabpanel" class="tab-pane {% if active_tab == 'registration' %} active {% endif %}" id="registration">
+                <div class="form-group" style="border-top:none">
+                    <label for="getresponse-reg-active"
+                           class="col-sm-2 control-label">{{ label_active_register }}</label>
+                    <div class="col-sm-10">
+                        <label class="checkbox-inline">
+                            <input type="checkbox"
+                                   value="1"{% if getresponse_reg.active and getresponse_reg.active == 1 %}
+                                checked
+                            {% endif %} name="getresponse_reg[active]">
+                        </label>
+                    </div>
+                </div>
+              <div class="form-group" style="border-top:none">
+                <label for="getresponse-reg-campaign" class="col-sm-2 control-label">{{ label_campaign }}</label>
+                <div class="col-sm-4">
+                  <select name="getresponse_reg[campaign]" id="getresponse-reg-campaign" class="form-control">
+                    {% for campaign in campaigns %}
+                    <option value="{{ campaign.campaignId }}"{% if getresponse_reg.campaign == campaign.campaignId %} selected{% endif %}>{{ campaign.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <span class="help-block">{{ entry_campaign_description }}</span>
+                </div>
+              </div>
+              <div class="form-group sequence-day-label" style="border-top:none">
+                <div class="col-sm-2"></div>
+                <div class="col-sm-10 checkbox">
+                  <label>
+                    <input type="checkbox" value="1"{% if getresponse_reg.sequence_active and getresponse_reg.sequence_active == 1 %} checked{% endif %} name="getresponse_reg[sequence_active]">
+                  </label> {{ label_auto_queue }}
+                </div>
+              </div>
+              <div class="form-group sequence-day-label" style="border-top:none">
+                <label for="getresponse-reg-day" class="col-sm-2 control-label">{{ label_day_of_cycle }}</label>
+                <div class="col-sm-4">
+                  <select name="getresponse_reg[day]" id="getresponse-reg-day" class="form-control"></select>
+                  <span class="help-block">{{ entry_campaign_description }}</span>
+                </div>
+              </div>
+              <div id="edit-register-hint">
+                <div>
+                  <a class="gr-hint" href="#">{{ label_register_info }}</a>
+                  <div id="gr-hint-reg" style="display: none;">
+                    {{ register_info }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div role="tabpanel" class="tab-pane {% if active_tab == 'webform' %} active {% endif %}" id="webform">
+              <div class="form-group" style="border-top:none">
+                <label for="getresponse-form-active" class="col-sm-2 control-label">{{ label_active_forms }}</label>
+                <div class="col-sm-10">
+                  <label class="checkbox-inline">
+                    <input type="checkbox" value="1" {% if getresponse_form.active == 1 %} checked{% endif %} name="getresponse_form[active]">
+                  </label>
+                </div>
+              </div>
+              <div class="form-group" style="border-top:none">
+                <label for="getresponse-reg-active" class="col-sm-2 control-label">{{ label_form }}</label>
+                <div class="col-sm-4">
+                  <select name="getresponse_form[id]" id="getresponse-form-id" class="form-control">
+                    {% new_forms and new_forms is not empty %}
+                      <optgroup label="{{ label_new_forms }}">
+                      {% for form in new_forms %}
+                        {{ set selectedOption = getresponse_form.id == form.id ? 'selected' : '' }}
+                        {# echo '<option value="' . $form['id'] . '" ' . $selectedOption . ' data-url="' . $form['url'] . '">'.$form['name'].'</option>'; #}
+                        <option value="{{ form.id }}" {{ selectedOption }} data-url=" {{ form.url }}"> {{ form.name }}</option>
+                      {% endfor %}
+                      </optgroup>
+                    {% endif %}
+                    {% if old_forms and old_forms is not empty %}
+                      <optgroup label="{{ label_old_forms }}">
+                      {% for form in old_forms %}
+                         {{ set selectedOption = getresponse_form.id == form.id ? 'selected' : '' }}
+                        <option value="{{ form.id }}" {{ selectedOption }}  data-url="{{ form.url }}"> {{ form.name }}</option>
+                      {% endfor %}
+                      </optgroup>
+                    {% endif %}
+                    
+                  </select>
+                  <span id="config-campaign-help" class="help-block">{{ entry_campaign_hint }}</span>
+                  <input type="hidden" name="getresponse_form[url]" id="getresponse-form-url" value="{{ getresponse_form.url }}">
+                </div>
+              </div>
+              <div id="edit-webform-hint">
+                <div>
+                  <a class="gr-hint" href="#">{{ label_webform_info }}</a>
+                  <div id="gr-hint-wf" style="display: none;">
+                    {{ webform_info }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          <input type="hidden" name="getresponse_form[current_tab]" id="getresponse-current-tab" value="">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+    <!-- Modal -->
+    <div class="modal fade" id="getresponseModal" tabindex="-1" role="dialog" aria-labelledby="getresponseModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="getresponseModalLabel">{{ disconnect_title }}</h4>
+                </div>
+                <div class="modal-body">
+                    {{ disconnect_info }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{{ button_stay }}</button>
+                    <button class="btn btn-primary" type="submit" id="button_disconnect">{{ label_yes }} , {{ button_disconnect | lower }}</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="text/javascript">
+  <!--
+  $(function () {
+      var api_key_element = $('#getresponse-apikey');
+      var campaign_element = $('#getresponse-campaign');
+      var export_element = $('#gr-export');
+      var tab_element = $("li[role='presentation']");
+      var current_tab_input = $('#getresponse-current-tab');
+      var register_hint = $('#edit-register-hint a');
+      var export_hint = $('#edit-export-hint a');
+      var webform_hint = $('#edit-webform-hint a');
+      var connect_token = $('#getresponse_disconnect')
+
+    $('#getresponse-form-id').change(function () {
+      $('#getresponse-form-url').val($(this).find('option:selected').data('url'));
+    });
+
+      $('#getresponse-reg-campaign').change(function () {
+          getCycleDays('#getresponse-reg-campaign', '#getresponse-reg-day', '.sequence-day-label');
+      });
+      $('#getresponse-campaign').change(function () {
+          getCycleDays('#getresponse-campaign', '#getresponse-ex-day', '.sequence-ex-day-label');
+      });
+      function getCycleDays(getresponse_campaign, getresponse_day, sequence_day_label) {
+          var campaign_id = $(getresponse_campaign).val(),
+              day_element = $(getresponse_day),
+              cycles_label = $(sequence_day_label),
+              checkbox = $(sequence_day_label + ' input'),
+              cycles = $.parseJSON({{ campaign_days ? (campaign_days|json_encode())|addslashes : '{}' }});
+          day_element.text('');
+
+      if (cycles.hasOwnProperty(campaign_id)) {
+          var obj = cycles[campaign_id];
+          var current_cycle_day = "{{ getresponse_reg['day'] }}";
+          for (var prop in obj) {
+              if (obj.hasOwnProperty(prop)) {
+                  var select = (current_cycle_day == obj[prop].day) ? 'selected' : '';
+                  var option = '<option value="' + parseInt(obj[prop].day) + '" ' + select + '>Day ' +
+                          obj[prop].day + ': ' + obj[prop].name + ' (' + obj[prop].status + ')' +
+                          '</option>';
+
+                  day_element.append(option);
+              }
+          }
+          day_element.prop('disabled', false);
+          checkbox.prop('disabled', false);
+      } else {
+          var option = '<option value="" >no autoresponders</option>';
+          day_element.append(option);
+          day_element.prop('disabled', true);
+          checkbox.prop('checked', false);
+          checkbox.prop('disabled', true);
+      }
+    }
+
+      getCycleDays('#getresponse-reg-campaign', '#getresponse-reg-day', '.sequence-day-label');
+      getCycleDays('#getresponse-campaign', '#getresponse-ex-day', '.sequence-ex-day-label');
+
+    function ajax_export() {
+      var api_key = api_key_element.val();
+      var campaign = campaign_element.val();
+        var cycle_days = undefined;
+        if($('#getresponse_ex_sequence_active').prop('checked')){
+            cycle_days = $('#getresponse-ex-day').val();
+        }
+
+      $.ajax({
+        url: "index.php?route=module/getresponse/export&token={{ user_token }}",
+        beforeSend: function () {
+          $('.gr-info').html('<div class="alert alert-info">{{ info_loading }}</div>')
+        },
+        data: {
+            'api_key': api_key,
+            'campaign': campaign,
+            'cycle_days': cycle_days
+        },
+        success: function (data) {
+          $('.gr-info').html('<div class="alert alert-success">{{ text_export_success }}</div>');
+        },
+        error: function (response) {
+          $('.gr-info').html(' <div class="alert alert-danger">{{ info_ajax_error }}</div>');
+        },
+        type: "POST",
+        async: false,
+        dataType: "json"
+      });
+    }
+
+      $(export_element).click(function () {
+              ajax_export();
+      });
+
+    $(tab_element).click(function() {
+      var new_value = $(this).find('a').attr('aria-controls');
+      current_tab_input.val(new_value);
+    });
+    current_tab_input.val('{{ active_tab }}');
+
+    $(register_hint).on( "click", function(e) {
+      $('#gr-hint-reg').toggle();
+      e.preventDefault()
+    });
+
+    $(export_hint).on( "click", function(e) {
+      $('#gr-hint-ex').toggle();
+      e.preventDefault()
+    });
+    $(webform_hint).on( "click", function(e) {
+      $('#gr-hint-wf').toggle();
+      e.preventDefault()
+    });
+      $("#button_disconnect").on("click", function () {
+          $(connect_token).val(1);
+          $('#form').submit();
+      });
+      $("#button_connect").on("click", function () {
+          $(connect_token).val(2);
+          $('#form').submit();
+      });
+      $('.nav li').on("click", function () {
+          $('.container-fluid .alert').remove();
+          $('.gr-info').html('');
+
+      });
+      $('#GrBreadcrumb a').on("click", function (e) {
+          $('.nav-tabs li a')[0].click();
+          e.preventDefault();
+      });
+  });
+  //-->
+</script>
+{{ footer }}
